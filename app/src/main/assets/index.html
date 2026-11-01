@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SciCalc Pro</title>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #111827; color: white; display: flex; flex-direction: column; height: 100vh; }
+        .display { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; padding: 60px 30px 30px; }
+        .equation { font-size: 24px; color: #9ca3af; margin-bottom: 10px; min-height: 30px; }
+        .result { font-size: 60px; font-weight: 300; letter-spacing: -2px; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: right; }
+        .keypad { padding: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; background: #1f2937; border-top-left-radius: 30px; border-top-right-radius: 30px; padding-bottom: 40px; }
+        .key { height: 70px; border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 500; background: #374151; color: #e5e7eb; border: none; cursor: pointer; transition: 0.1s; }
+        .key:active { transform: scale(0.95); background: #4b5563; }
+        .key.operator { background: #4b5563; color: #f3f4f6; }
+        .key.accent { background: #6366f1; color: white; }
+        .key.warning { background: #f59e0b; color: white; }
+    </style>
+</head>
+<body>
+    <div class="display">
+        <div class="equation" id="equation"></div>
+        <div class="result" id="result">0</div>
+    </div>
+    <div class="keypad">
+        <button class="key operator" onclick="clearAll()">C</button>
+        <button class="key operator" onclick="append('(')">(</button>
+        <button class="key operator" onclick="append(')')">)</button>
+        <button class="key warning" onclick="append('/')">÷</button>
+
+        <button class="key" onclick="append('7')">7</button>
+        <button class="key" onclick="append('8')">8</button>
+        <button class="key" onclick="append('9')">9</button>
+        <button class="key operator" onclick="append('*')">×</button>
+
+        <button class="key" onclick="append('4')">4</button>
+        <button class="key" onclick="append('5')">5</button>
+        <button class="key" onclick="append('6')">6</button>
+        <button class="key operator" onclick="append('-')">−</button>
+
+        <button class="key" onclick="append('1')">1</button>
+        <button class="key" onclick="append('2')">2</button>
+        <button class="key" onclick="append('3')">3</button>
+        <button class="key operator" onclick="append('+')">+</button>
+
+        <button class="key" onclick="append('0')">0</button>
+        <button class="key" onclick="append('.')">.</button>
+        <button class="key accent" style="grid-column: span 2;" onclick="calculate()">=</button>
+    </div>
+    <script>
+        let currentInput = '';
+        
+        function updateDisplay() {
+            document.getElementById('equation').innerText = currentInput;
+        }
+
+        function append(val) {
+            if (currentInput === '0' && val !== '.') currentInput = '';
+            currentInput += val;
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentInput = '';
+            document.getElementById('result').innerText = '0';
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (!currentInput) return;
+            try {
+                // Safe eval replacement for basic math
+                let safeExpr = currentInput.replace(/[^0-9+\-*/().]/g, '');
+                let res = Function('"use strict";return (' + safeExpr + ')')();
+                
+                if (res === Infinity || res === -Infinity) throw new Error("Div by zero");
+                if (isNaN(res)) throw new Error("Invalid");
+                
+                // Clean up floating point errors (e.g. 0.1 + 0.2)
+                res = Math.round(res * 100000000) / 100000000;
+                
+                document.getElementById('result').innerText = res;
+            } catch (e) {
+                document.getElementById('result').innerText = 'Error';
+            }
+        }
+    </script>
+</body>
+</html>
